@@ -1,0 +1,41 @@
+{
+  "name": "@es-joy/js2ts-assistant",
+  "version": "0.1.0",
+  "author": "Brett Zamir <brettz9@yahoo.com>",
+  "contributors": [],
+  "description": "Assists in the process of creating TypeScript declaration files out of JavaScript+JSDoc",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "jsdoc"
+  ],
+  "main": "./index.js",
+  "exports": "./index.js",
+  "scripts": {
+    "eslint": "eslint --ext=js,cjs,mjs .",
+    "lint": "npm run eslint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/es-joy/js2ts-assistant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/es-joy/js2ts-assistant/issues"
+  },
+  "homepage": "https://github.com/es-joy/js2ts-assistant",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@es-joy/escodegen": "^3.5.1",
+    "@es-joy/jsdoc-eslint-parser": "^0.16.0",
+    "@es-joy/jsdoccomment": "^0.29.0",
+    "ast-types": "^0.14.2",
+    "esquery": "^1.4.0",
+    "globby": "^13.1.1"
+  },
+  "devDependencies": {
+    "eslint": "latest"
+  }
+}
