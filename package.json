@@ -1,6 +1,6 @@
 {
   "name": "@es-joy/js2ts-assistant",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Brett Zamir <brettz9@yahoo.com>",
   "contributors": [],
   "description": "Assists in the process of creating TypeScript declaration files out of JavaScript+JSDoc",

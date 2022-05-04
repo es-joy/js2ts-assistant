@@ -210,7 +210,7 @@ async function js2tsAssistant ({
 
                           if (customClassHandling) {
                             const match = customClassHandling({
-                              ast, builders,
+                              ast, builders, typeCast,
                               superClassName: parent.superClass.name
                             });
                             if (match) {
