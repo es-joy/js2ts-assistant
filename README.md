@@ -50,3 +50,17 @@ async function js2tsAssistant ({
 }) {
 }
 ```
+
+## Inner workings
+
+We use `@es-joy/jsdoc-eslint-parser/typescript.js` to parse JavaScript with
+JSDoc blocks treated as regular AST nodes. This allows us to then use `esquery`
+to quickly find the tags of interest to us.
+
+In the case of building our dummy class, we use `builders` from `ast-types`
+to cleanly build our desired AST.
+
+Then after modifications have been made, we use a light, jsdoc-comment-aware
+fork of `escodegen`, `@es-joy/escodegen`, along with stringification of
+`@es-joy/jsdoccomment` to convert the modified JS+JSDoc back to a string
+for saving to a file (which can then be processed by `tsc`).
