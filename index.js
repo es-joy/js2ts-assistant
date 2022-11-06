@@ -126,6 +126,35 @@ async function js2tsAssistant ({
           };
       }
 
+      /**
+       * Build a JSDoc typedef.
+       * @param {Object} extraInfo Extra type info
+       * @returns {JsdocBlock} The JsdocBlock object
+       */
+      function buildTypedef(extraInfo) {
+          return {
+              type: "JsdocBlock",
+              initial: "",
+              delimiter: "/**",
+              postDelimiter: "",
+              terminal: "*/",
+              descriptionLines: [],
+              tags: [
+                  {
+                      type: "JsdocTag",
+                      tag: "typedef",
+                      postTag: " ",
+                      descriptionLines: [],
+                      ...extraInfo,
+                      postType: "",
+                      initial: "",
+                      delimiter: "",
+                      postDelimiter: " "
+                  }
+              ]
+          };
+      }
+
       for (const exportBlock of exportBlocks) {
           switch (exportBlock.parent.type) {
               case "ReturnStatement": {
@@ -133,7 +162,7 @@ async function js2tsAssistant ({
 
                   switch (parent.type) {
                       case "ClassExpression": {
-                          const classBody = parent.body.body.map(({
+                          const typeLines = parent.body.body.map(({
                               type, kind, key, value, computed,
                               static: statik
                           }) => {
@@ -144,63 +173,25 @@ async function js2tsAssistant ({
 
                               switch (type) {
                                   case "MethodDefinition": {
+                                      if (kind === "constructor") {
+                                        return null;
+                                      }
+
+                                      let output = (statik ? "static " : "") +
+                                        key + ": (";
+
+                                      output += jsdoc.tags.filter(
+                                          tag => tag.tag === "param"
+                                      ).map(
+                                        tag => `${tag.name}: ${tag.rawType}`
+                                      ).join(", ");
+
                                       const returns = jsdoc.tags.find(
                                           tag => tag.tag === "returns"
                                       );
-                                      const objectExpressionOrOther = !returns || returns.rawType === "void" ||
-                                          kind === "constructor"
-                                          ? builders.identifier("undefined")
-                                          : builders.objectExpression([]);
+                                      output += `) => ${returns.rawType || "void"}`;
 
-                                      if (kind !== "constructor") {
-                                          objectExpressionOrOther.jsdoc = typeCast({
-                                              parsedType: returns.parsedType
-                                          });
-                                      }
-
-                                      const paramNames = jsdoc.tags.filter(
-                                          tag => tag.tag === "param"
-                                      ).map(
-                                          // eslint-disable-next-line arrow-body-style
-                                          tag => {
-                                              const identifier = builders.identifier(tag.name);
-
-                                              if (customParamHandling) {
-                                                customParamHandling({tag, identifier, typeCast});
-                                              }
-
-                                              return identifier;
-                                          }
-                                      );
-                                      const functionExpression = builders.functionExpression(
-                                          null,
-
-                                          paramNames,
-
-                                          builders.blockStatement([
-                                              kind === "constructor"
-                                                  ? builders.expressionStatement(
-                                                      builders.callExpression(
-                                                          builders.super(),
-                                                          paramNames
-                                                      )
-                                                  )
-                                                  : builders.returnStatement(
-                                                      objectExpressionOrOther
-                                                  )
-                                          ])
-                                      );
-
-                                      const methodDefinition = builders.methodDefinition(
-                                          kind,
-                                          key,
-                                          functionExpression,
-                                          statik
-                                      );
-
-                                      methodDefinition.jsdoc = jsdoc;
-
-                                      return methodDefinition;
+                                      return output;
                                   } default:
                                       throw new Error(`Unknown ${type}`);
                               }
@@ -218,16 +209,16 @@ async function js2tsAssistant ({
                             }
                           }
 
-                          const classDeclaration = builders.classDeclaration(
-                              builders.identifier(parent.id.name),
-                              builders.classBody(classBody),
+                          const typedef = buildTypedef({
+                            // Easier here than using any AST builders
+                            type: `{\n  ${
+                              typeLines.join(';\n  ')
+                            }\n} & ${superClass}`,
+                            postType: ' ',
+                            name: parent.id.name
+                          });
 
-                              builders.identifier(superClass)
-                          );
-
-                          ast.body.push(builders.exportNamedDeclaration(
-                              classDeclaration
-                          ));
+                          ast.body.push(typedef);
 
                           break;
                       } default:
